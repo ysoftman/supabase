@@ -81,6 +81,20 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 ```
 
+### Storage 파일명 제한 (non-ASCII 문자 불가)
+
+Supabase Storage 는 한글, 중국어 등 non-ASCII 문자가 포함된 파일명을 지원하지 않는다.
+대시보드에서 드래그앤드롭 업로드 시 `InvalidKey` 에러가 발생한다.
+
+- `병아리.jpg` (X) → `chick.jpg` (O)
+- `방독면-아이콘.png` (X) → `gas_mask_icon.png` (O)
+
+관련 이슈:
+
+- <https://github.com/supabase/supabase/issues/34595>
+- <https://github.com/supabase/storage/issues/133>
+- <https://github.com/supabase/supabase/issues/22974>
+
 ## supabase storage 파일 업로드
 
 ```bash
