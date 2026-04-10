@@ -22,12 +22,24 @@ zzz
 
 ### Authentication 설정
 
-- Authentication > Sign In / Providers > Third-Party Auth 탭 > Google 활성화
-  - Google Cloud Console 에서 OAuth 클라이언트 ID/Secret 생성 필요
-  - Client IDs: Google OAuth Client ID 입력 (공백 없이, 쉼표로 구분)
-  - Client Secret (for OAuth): Google OAuth Client Secret 입력
-  - Callback URL (for OAuth): `https://<project-id>.supabase.co/auth/v1/callback` (자동 생성됨, Google Cloud Console 의 승인된 리디렉션 URI 에 등록)
+- Google Cloud Console 에서 OAuth 클라이언트 생성:
+  1. [Google Cloud Console](https://console.cloud.google.com/) 접속
+  2. **API 및 서비스 > OAuth 동의 화면** 에서 동의 화면 생성 (없는 경우)
+     - 테스트 단계에서는 **테스트 사용자**에 본인 이메일을 추가해야 로그인 가능
+  3. **API 및 서비스 > 사용자 인증 정보 > + 사용자 인증 정보 만들기 > OAuth 클라이언트 ID** 선택
+  4. 애플리케이션 유형: **웹 애플리케이션**
+  5. **승인된 리디렉션 URI** 에 추가: `https://<project-id>.supabase.co/auth/v1/callback`
+  6. **만들기** 클릭 후 **클라이언트 ID** 와 **클라이언트 보안 비밀번호** 복사
+- Supabase 대시보드에서 Google 제공자 활성화:
+  1. Authentication > Sign In / Providers > Third-Party Auth 탭 > Google 활성화
+  2. Client IDs: 위에서 복사한 클라이언트 ID 입력 (공백 없이, 쉼표로 구분)
+  3. Client Secret (for OAuth): 위에서 복사한 클라이언트 보안 비밀번호 입력
+  4. Callback URL (for OAuth): `https://<project-id>.supabase.co/auth/v1/callback` (자동 생성됨)
 - Authentication > Sign In / Providers > Supabase Auth 탭 > Allow anonymous sign-ins 활성화
+- Authentication > URL Configuration 설정:
+  - **Site URL**: `https://ysoftman.github.io/supabase` (로그인 후 최종 redirect 대상)
+  - **Redirect URLs**: `https://ysoftman.github.io/supabase` 추가
+  - 로컬 테스트 시 `http://localhost:5173` 도 Redirect URLs 에 추가
 
 ### Storage 설정
 
