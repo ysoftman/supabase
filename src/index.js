@@ -33,7 +33,7 @@ export const loadImages = async (htmlId, imageNames) => {
     }
     let id = name;
     if (isImage) {
-      item = `<img loading="lazy" src=${url}></img>`;
+      item = `<img class="thumbnail" loading="lazy" src=${url} onclick="const o=document.createElement('div');o.className='img-overlay';o.onclick=()=>o.remove();o.innerHTML='<img src=${url}>';document.body.appendChild(o);">`;
       id += "_img";
     } else {
       item = `<video width="640" controls autoplay muted><source type="video/mp4" src=${url}></video>`;
