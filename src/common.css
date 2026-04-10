@@ -1,6 +1,6 @@
 body {
-  background: #eceff1;
-  color: rgba(0, 0, 0, 0.87);
+  background: #212529;
+  color: #e0e0e0;
   font-family: Roboto, Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 5px;
@@ -69,12 +69,19 @@ img.thumbnail:hover {
 .nes-btn.is-purple:hover {
   color: #fff;
   background-color: #7c3aed;
+  box-shadow: inset -4px -4px #a78bfa;
+}
+
+.nes-btn.is-purple:hover::after {
+  box-shadow:
+    inset -4px -4px #a78bfa,
+    inset -4px -4px #a78bfa;
 }
 
 .nes-btn.is-purple:active,
 .nes-btn.is-purple:focus {
   box-shadow: inset -4px -4px #5b21b6;
-  background-color: #7c3aed;
+  background-color: #6d28d9;
 }
 
 .card-columns {
@@ -101,7 +108,7 @@ img.thumbnail:hover {
 }
 
 .github-link {
-  color: #333;
+  color: #e0e0e0;
   text-decoration: none;
 }
 
@@ -148,17 +155,40 @@ img.thumbnail:hover {
 
 .msg-item {
   padding: 4px 0;
-  border-bottom: 2px dashed #ccc;
+  border-bottom: 2px dashed #444;
   font-size: 12px;
   word-break: break-word;
 }
 
 .index-navbar {
-  border-bottom: 4px solid #aaaaaa;
+  border-bottom: 4px solid #444;
+}
+
+.nes-container {
+  background: #2b2f33;
+  color: #e0e0e0;
+}
+
+.nes-container.with-title > .title {
+  background-color: #212529 !important;
+  color: #f8c630 !important;
+}
+
+.nes-balloon.is-dark .nes-text.is-primary {
+  color: #64b5f6;
+}
+
+.nes-balloon.is-dark .nes-text.is-error {
+  color: #ef9a9a;
+}
+
+.nes-textarea {
+  background: #1a1d21;
+  color: #e0e0e0;
 }
 
 #message {
-  background: white;
+  background: #2b2f33;
   max-width: 360px;
   margin: 100px auto 16px;
   padding: 32px 24px;
@@ -175,7 +205,7 @@ img.thumbnail:hover {
 #message h1 {
   font-size: 22px;
   font-weight: 300;
-  color: rgba(0, 0, 0, 0.6);
+  color: #aaa;
   margin: 0 0 16px;
 }
 
@@ -197,7 +227,7 @@ img.thumbnail:hover {
 }
 
 #load {
-  color: rgba(0, 0, 0, 0.4);
+  color: #888;
   text-align: center;
   font-size: 13px;
 }
@@ -205,8 +235,8 @@ img.thumbnail:hover {
 @media screen and (max-width: 600px) {
   body,
   #message {
+    background: #212529;
     margin-top: 0;
-    background: white;
     box-shadow: none;
   }
 }
