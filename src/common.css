@@ -324,6 +324,34 @@ img.thumbnail:hover {
   border-bottom: 2px dashed var(--msg-border-color);
   font-size: 12px;
   word-break: break-word;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.msg-avatar {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  border-radius: 2px;
+  flex-shrink: 0;
+  background: var(--color-bg-deep);
+}
+
+.title-avatar {
+  width: 18px;
+  height: 18px;
+  image-rendering: pixelated;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+.login-avatar {
+  width: 20px;
+  height: 20px;
+  image-rendering: pixelated;
+  vertical-align: middle;
+  margin-right: 2px;
 }
 
 .msg-delete-btn {

@@ -1,6 +1,9 @@
 import "./common.js";
 import "@fontsource/press-start-2p";
 import "nes.css/css/nes.min.css";
+import { pixelArt } from "@dicebear/collection";
+import { createAvatar } from "@dicebear/core";
+
 import { supabase } from "./common.js";
 
 const STORAGE_BUCKET = "images";
@@ -84,11 +87,14 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       `<div class="msg-list" id="msg_list_${msgId}"></div>`;
     const meta = metaMap[name] || {};
     const uploadInfo = uploaderMap[name] || {};
+    const uploaderAvatar = uploadInfo.user_id
+      ? `<img class="title-avatar" src="${makeDicebear(uploadInfo.user_id)}">`
+      : "";
     const metaHtml =
       `<span class="img-meta">` +
       (meta.size ? `<span class="img-file-size">${formatFileSize(meta.size)}</span> ` : "") +
       (meta.created_at ? `<span class="img-upload-time">${formatDate(meta.created_at)}</span> ` : "") +
-      (uploadInfo.user_name ? `<span class="img-uploader">${uploadInfo.user_name}</span> ` : "") +
+      (uploadInfo.user_name ? `${uploaderAvatar}<span class="img-uploader">${uploadInfo.user_name}</span> ` : "") +
       `</span>`;
     const deleteHtml = `<span class="img-file-delete" id="file_del_${msgId}" style="display:none"></span>`;
     if (isImage) {
@@ -258,6 +264,11 @@ const getByteLength = (str) => textEncoder.encode(str).length;
 const INITIAL_LIMIT = 10;
 const MORE_LIMIT = 5;
 
+const makeDicebear = (seed) => {
+  const avatar = createAvatar(pixelArt, { seed });
+  return avatar.toDataUri();
+};
+
 const renderMessageRow = (row, currentUserId, imageName, listId) => {
   const d = new Date(row.created_at);
   const date = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
@@ -267,7 +278,9 @@ const renderMessageRow = (row, currentUserId, imageName, listId) => {
     currentUserId && row.user_id === currentUserId
       ? ` <button class="nes-btn is-error msg-delete-btn" data-msg-id="${row.id}" data-image-name="${imageName}" data-list-id="${listId}">x</button>`
       : "";
-  return `<div class="msg-item"><span class="nes-text is-disabled">${date}</span> <span class="nes-text is-primary">${user}</span> ${msg}${deleteBtn}</div>`;
+  const seed = row.user_id || user;
+  const avatar = `<img class="msg-avatar" src="${makeDicebear(seed)}" title="dicebear pixel-art">`;
+  return `<div class="msg-item">${avatar}<span class="nes-text is-disabled">${date}</span> <span class="nes-text is-primary">${user}</span> ${msg}${deleteBtn}</div>`;
 };
 
 // 이미지 메시지 조회 (초기 10개, 이후 5개씩 추가 로드)
