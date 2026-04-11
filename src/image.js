@@ -36,7 +36,8 @@ const showImageOverlay = (url, name) => {
     `<img src="${url}">` +
     `</div>`;
   document.body.appendChild(overlay);
-  getMeta(url, (_err, img) => {
+  getMeta(url, (err, img) => {
+    if (err || !img) return;
     const sizeEl = overlay.querySelector(`#overlay_size_${toSafeId(name)}`);
     if (sizeEl) sizeEl.textContent = `${img.naturalWidth} x ${img.naturalHeight}`;
   });
@@ -187,7 +188,8 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
         if (thumbEl.complete) applyMaxHeight();
         thumbEl.addEventListener("load", applyMaxHeight);
       }
-      getMeta(publicUrlMap[name], (_err, img) => {
+      getMeta(publicUrlMap[name], (err, img) => {
+        if (err || !img) return;
         const imgSize = `(${img.naturalWidth}x${img.naturalHeight})`;
         if (document.getElementById(`${name}_img_size`) == null) {
           return;
