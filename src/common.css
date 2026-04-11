@@ -305,6 +305,13 @@ img.thumbnail:hover {
   color: #64b5f6 !important;
 }
 
+.img-file-delete-btn {
+  padding: 0 4px;
+  min-height: auto;
+  font-size: 10px;
+  vertical-align: middle;
+}
+
 .img-meta {
   font-size: 11px;
   margin-left: 4px;

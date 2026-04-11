@@ -55,11 +55,11 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
   if (imageNames.length > 0) {
     const { data: uploadData } = await supabase
       .from("image_uploads")
-      .select("file_path, user_name")
+      .select("file_path, user_name, user_id")
       .in("file_path", imageNames);
     if (uploadData) {
       for (const row of uploadData) {
-        uploaderMap[row.file_path] = row.user_name;
+        uploaderMap[row.file_path] = { user_name: row.user_name, user_id: row.user_id };
       }
     }
   }
@@ -82,22 +82,23 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       `</div>` +
       `<div class="msg-list" id="msg_list_${msgId}"></div>`;
     const meta = metaMap[name] || {};
-    const uploader = uploaderMap[name] || "";
+    const uploadInfo = uploaderMap[name] || {};
     const metaHtml =
       `<span class="img-meta">` +
       (meta.size ? `<span class="img-file-size">${formatFileSize(meta.size)}</span> ` : "") +
       (meta.created_at ? `<span class="img-upload-time">${formatDate(meta.created_at)}</span> ` : "") +
-      (uploader ? `<span class="img-uploader">${uploader}</span>` : "") +
+      (uploadInfo.user_name ? `<span class="img-uploader">${uploadInfo.user_name}</span> ` : "") +
       `</span>`;
+    const deleteHtml = `<span class="img-file-delete" id="file_del_${msgId}" style="display:none"></span>`;
     if (isImage) {
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> <span id="${name}_img_size"></span> ${metaHtml}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> <span id="${name}_img_size"></span> ${metaHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_img"></div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     } else {
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> ${metaHtml}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> ${metaHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_video"></div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     }
     document.getElementById(htmlId).insertAdjacentHTML("beforeend", item);
@@ -162,8 +163,25 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
         document.getElementById(`${name}_img_size`).innerHTML = imgSize;
       });
     }
-    // 메시지 로드
+    // 본인 업로드 파일만 삭제 버튼 표시
     const msgId = toSafeId(name);
+    const uploadInfo = uploaderMap[name] || {};
+    if (currentUser && uploadInfo.user_id === currentUser.id) {
+      const delEl = document.getElementById(`file_del_${msgId}`);
+      if (delEl) {
+        delEl.style.display = "";
+        delEl.innerHTML = `<button class="nes-btn is-error img-file-delete-btn">x</button>`;
+        delEl.querySelector(".img-file-delete-btn").addEventListener("click", async () => {
+          if (!confirm(`delete "${name}"?`)) return;
+          const deleted = await deleteFile(name);
+          if (deleted) {
+            const container = delEl.closest(".nes-container");
+            if (container) container.remove();
+          }
+        });
+      }
+    }
+    // 메시지 로드
     await loadMessages(name, `msg_list_${msgId}`, currentUser?.id);
     // 로그인한 사용자만 메시지 입력 가능
     if (currentUser) {
@@ -395,6 +413,31 @@ export const getVisitCnt = async (docName, htmlId) => {
     return;
   }
   document.getElementById(htmlId).innerHTML = `${data}`;
+};
+
+// 파일 삭제 (storage + metadata, 본인 업로드만)
+const deleteFile = async (filePath) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    alert("Login required");
+    return false;
+  }
+  // 본인 업로드 파일인지 확인
+  const { data: uploadRow } = await supabase.from("image_uploads").select("user_id").eq("file_path", filePath).single();
+  if (!uploadRow || uploadRow.user_id !== user.id) {
+    alert("You can only delete files you uploaded");
+    return false;
+  }
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+  if (error) {
+    alert(`Delete error: ${error.message}`);
+    return false;
+  }
+  await supabase.from("image_uploads").delete().eq("file_path", filePath).eq("user_id", user.id);
+  await supabase.from("image_messages").delete().eq("image_name", filePath);
+  return true;
 };
 
 // 업로드 대상 디렉토리
