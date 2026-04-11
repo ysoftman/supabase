@@ -4,6 +4,8 @@
   "author": "ysoftman",
   "license": "MIT",
   "dependencies": {
+    "@dicebear/collection": "^9.4.2",
+    "@dicebear/core": "^9.4.2",
     "@fontsource/press-start-2p": "^5.2.7",
     "@supabase/supabase-js": "^2.49.0",
     "nes.css": "^2.3.0",

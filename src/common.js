@@ -1,6 +1,9 @@
 // ysoftman
 import "./common.css"; // css, scss 중 마지막에 import 해야 올바르게 적용된다.
+import { pixelArt } from "@dicebear/collection";
+import { createAvatar } from "@dicebear/core";
 import { createClient } from "@supabase/supabase-js";
+
 import { supabasePublishableKey, supabaseUrl } from "./supabase_config.js";
 
 export const supabase = createClient(supabaseUrl(), supabasePublishableKey());
@@ -8,11 +11,17 @@ export const supabase = createClient(supabaseUrl(), supabasePublishableKey());
 const loginBoxID = "login_google";
 const loginAnonymousBoxID = "login_anonymous";
 
-const makeLogoutBoxHTML = (userName) => {
+const makeAvatarHTML = (seed) => {
+  const src = createAvatar(pixelArt, { seed }).toDataUri();
+  return `<img class="login-avatar" src="${src}">`;
+};
+
+const makeLogoutBoxHTML = (userName, userId) => {
+  const avatars = userId ? makeAvatarHTML(userId) : "";
   if (userName.length === 0) {
-    return `Anonymous (logout)`;
+    return `${avatars}Anonymous (logout)`;
   }
-  return `${userName} (logout)`;
+  return `${avatars}${userName} (logout)`;
 };
 
 // 로그인한 사용자에 대한 정보가 필요한 앱 페이지마다 인증 상태 변경 리스너를 등록합니다.
@@ -24,11 +33,11 @@ supabase.auth.onAuthStateChange((_event, session) => {
     const user = session.user;
     console.log("user:", user);
     if (user.is_anonymous) {
-      document.getElementById(loginAnonymousBoxID).innerHTML = makeLogoutBoxHTML("");
+      document.getElementById(loginAnonymousBoxID).innerHTML = makeLogoutBoxHTML("", user.id);
       return;
     }
     const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Unknown";
-    document.getElementById(loginBoxID).innerHTML = makeLogoutBoxHTML(userName);
+    document.getElementById(loginBoxID).innerHTML = makeLogoutBoxHTML(userName, user.id);
     document.getElementById(loginAnonymousBoxID).innerHTML = "login Anonymous";
   } else {
     // User is signed out.
@@ -50,7 +59,10 @@ const loginAnonymous = async () => {
     console.log("error: ", error);
     return;
   }
-  document.getElementById(loginAnonymousBoxID).innerHTML = makeLogoutBoxHTML("");
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  document.getElementById(loginAnonymousBoxID).innerHTML = makeLogoutBoxHTML("", session?.user?.id);
   window.location.reload();
 };
 
