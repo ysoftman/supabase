@@ -29,7 +29,7 @@ function getGitInfo() {
 const gitInfo = getGitInfo();
 
 export default defineConfig({
-  base: "/supabase/",
+  base: "/sbbs/",
   define: {
     __LAST_VERSION_TAG__: gitInfo.LAST_GIT_TAG,
     __LAST_COMMIT_HASH__: gitInfo.LAST_GIT_COMMIT_HASH,

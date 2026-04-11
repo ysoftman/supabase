@@ -1,5 +1,5 @@
 {
-  "name": "ysoftman-supabase",
+  "name": "sbbs",
   "version": "1.0.0",
   "author": "ysoftman",
   "license": "MIT",
@@ -14,7 +14,7 @@
   "devDependencies": {
     "vite": "^6.3.5"
   },
-  "description": "ysoftman supabase",
+  "description": "simple bbs",
   "scripts": {
     "dev": "vite",
     "build": "vite build"
