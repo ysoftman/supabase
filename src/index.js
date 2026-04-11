@@ -76,7 +76,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       `<div class="img-message" id="msg_form_${msgId}" style="display:none">` +
       `<div class="msg-textarea-wrap">` +
       `<textarea class="nes-textarea" id="msg_${msgId}" rows="2" placeholder="message..."></textarea>` +
-      `<span class="msg-charcount" id="msg_charcount_${msgId}">0/10000 bytes</span>` +
+      `<span class="msg-charcount" id="msg_charcount_${msgId}">0/10,000 bytes</span>` +
       `</div>` +
       `<button class="nes-btn is-primary" id="msg_save_${msgId}">save</button>` +
       `<span class="nes-text is-success" id="msg_status_${msgId}"></span>` +
@@ -198,7 +198,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       if (textarea && charcountEl) {
         textarea.addEventListener("input", () => {
           const bytes = getByteLength(textarea.value);
-          charcountEl.textContent = `${bytes}/${MAX_MSG_BYTES} bytes`;
+          charcountEl.textContent = `${bytes.toLocaleString()}/${MAX_MSG_BYTES.toLocaleString()} bytes`;
           charcountEl.classList.toggle("is-over", bytes > MAX_MSG_BYTES);
         });
       }
@@ -208,7 +208,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
           const statusEl = document.getElementById(`msg_status_${msgId}`);
           if (!textarea.value.trim()) return;
           if (getByteLength(textarea.value) > MAX_MSG_BYTES) {
-            statusEl.innerHTML = `<span class="nes-text is-error">${MAX_MSG_BYTES} bytes exceeded</span>`;
+            statusEl.innerHTML = `<span class="nes-text is-error">${MAX_MSG_BYTES.toLocaleString()} bytes exceeded</span>`;
             return;
           }
           const userName = currentUser.is_anonymous
