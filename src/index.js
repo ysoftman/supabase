@@ -397,6 +397,9 @@ export const getVisitCnt = async (docName, htmlId) => {
   document.getElementById(htmlId).innerHTML = `${data}`;
 };
 
+// 업로드 대상 디렉토리
+let uploadDir = "";
+
 // 파일 업로드
 const uploadFile = async (file) => {
   if (file.size > MAX_FILE_SIZE) {
@@ -418,7 +421,7 @@ const uploadFile = async (file) => {
     alert("Login required");
     return false;
   }
-  const filePath = currentDir ? `${currentDir}/${file.name}` : file.name;
+  const filePath = uploadDir ? `${uploadDir}/${file.name}` : file.name;
   const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(filePath, file, { upsert: false });
   if (error) {
     alert(`Upload error: ${error.message}`);
@@ -587,12 +590,42 @@ if (currentUploadUser) {
   document.getElementById("upload_area").style.display = "";
 }
 
-document.getElementById("btn_upload").addEventListener("click", () => {
-  if (!currentDir) {
-    alert("Select a directory first");
-    return;
+// 업로드 디렉토리 선택 팝업
+const showUploadDirPicker = (dirs) => {
+  const existing = document.getElementById("upload-dir-picker");
+  if (existing) existing.remove();
+
+  const picker = document.createElement("div");
+  picker.id = "upload-dir-picker";
+  picker.className = "upload-dir-picker";
+  picker.innerHTML =
+    '<div class="upload-dir-picker-inner nes-container is-dark">' +
+    "<p>upload directory</p>" +
+    dirs
+      .map(
+        (dir) =>
+          `<button class="nes-btn ${dir === currentDir ? "is-success" : "is-primary"} upload-dir-btn" data-dir="${dir}">${dir}</button>`,
+      )
+      .join(" ") +
+    '<br><br><button class="nes-btn is-error upload-dir-cancel">cancel</button>' +
+    "</div>";
+  document.body.appendChild(picker);
+
+  picker.querySelector(".upload-dir-cancel").addEventListener("click", () => picker.remove());
+  picker.addEventListener("click", (e) => {
+    if (e.target === picker) picker.remove();
+  });
+  for (const btn of picker.querySelectorAll(".upload-dir-btn")) {
+    btn.addEventListener("click", () => {
+      uploadDir = btn.dataset.dir;
+      picker.remove();
+      document.getElementById("file_input").click();
+    });
   }
-  document.getElementById("file_input").click();
+};
+
+document.getElementById("btn_upload").addEventListener("click", () => {
+  showUploadDirPicker(imgDirs);
 });
 
 document.getElementById("file_input").addEventListener("change", async (e) => {
@@ -604,7 +637,7 @@ document.getElementById("file_input").addEventListener("change", async (e) => {
     if (success) uploaded++;
   }
   if (uploaded > 0) {
-    await loadImg(currentDir);
+    await loadImg(uploadDir || currentDir);
   }
   e.target.value = "";
 });
