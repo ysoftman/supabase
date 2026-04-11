@@ -140,6 +140,15 @@ img.thumbnail:hover {
   text-decoration: none;
 }
 
+.img-link {
+  color: #f8c630;
+  text-decoration: none;
+}
+
+.img-link:hover {
+  text-decoration: underline;
+}
+
 .items > * {
   margin-bottom: 1.5rem;
 }

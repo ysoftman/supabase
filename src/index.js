@@ -56,12 +56,12 @@ export const loadImages = async (htmlId, imageNames) => {
     if (isImage) {
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title">${name} <span id="${name}_img_size"></span></p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> <span id="${name}_img_size"></span></p>` +
         `<div class="img-content-row"><div id="${name}_img"></div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     } else {
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title">${name}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a></p>` +
         `<div class="img-content-row"><div id="${name}_video"></div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     }
     document.getElementById(htmlId).insertAdjacentHTML("beforeend", item);
@@ -367,11 +367,28 @@ document.getElementById("btn_version").addEventListener("click", () => {
   el.style.display = el.style.display === "none" ? "" : "none";
 });
 
-async function loadImg(path) {
+async function loadImg(path, scrollTarget) {
   const imgNames = await getImageList(path);
   // image div 태그를 구성해 이미지 순서를 보장
   await loadImages("images", imgNames);
+  if (scrollTarget) {
+    const targetId = `${scrollTarget}_img`;
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.closest(".nes-container")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
 }
+
+// URL hash 에서 이미지 경로 파싱 (예: #dir/image.jpg → { dir: "dir", image: "dir/image.jpg" })
+const parseHash = () => {
+  const hash = decodeURIComponent(window.location.hash.slice(1));
+  if (!hash) return null;
+  const lastSlash = hash.indexOf("/");
+  if (lastSlash === -1) return { dir: hash, image: null };
+  const dir = hash.substring(0, lastSlash);
+  return { dir, image: hash };
+};
 
 const imgDirs = await getImageDirs("");
 for (const dir of imgDirs) {
@@ -387,6 +404,22 @@ for (const dir of imgDirs) {
 
 getVisitCnt("ysoftman", "visitcnt");
 
-if (imgDirs.length > 0) {
+const hashInfo = parseHash();
+if (hashInfo && imgDirs.includes(hashInfo.dir)) {
+  loadImg(hashInfo.dir, hashInfo.image);
+} else if (imgDirs.length > 0) {
   loadImg(imgDirs[0]);
 }
+
+// hash 변경 시 해당 이미지로 이동
+window.addEventListener("hashchange", () => {
+  const info = parseHash();
+  if (!info || !imgDirs.includes(info.dir)) return;
+  const targetId = info.image ? `${info.image}_img` : null;
+  const el = targetId ? document.getElementById(targetId) : null;
+  if (el) {
+    el.closest(".nes-container")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  } else {
+    loadImg(info.dir, info.image);
+  }
+});
