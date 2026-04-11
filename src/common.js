@@ -5,7 +5,7 @@ import { createAvatar } from "@dicebear/core";
 import { createClient } from "@supabase/supabase-js";
 
 import { supabasePublishableKey, supabaseUrl } from "./supabase_config.js";
-import { showAlert } from "./utils.js";
+import { escapeHtml, showAlert } from "./utils.js";
 
 export const supabase = createClient(supabaseUrl(), supabasePublishableKey());
 
@@ -22,14 +22,11 @@ const makeLogoutBoxHTML = (userName, userId) => {
   if (userName.length === 0) {
     return `${avatars}Anonymous (logout)`;
   }
-  return `${avatars}${userName} (logout)`;
+  return `${avatars}${escapeHtml(userName)} (logout)`;
 };
 
-// 로그인한 사용자에 대한 정보가 필요한 앱 페이지마다 인증 상태 변경 리스너를 등록합니다.
-// 사용자의 로그인 상태가 변경될 때마다 이 콜백이 호출됩니다.
+// 사용자의 로그인 상태가 변경될 때마다 UI 업데이트
 supabase.auth.onAuthStateChange((_event, session) => {
-  document.getElementById(loginBoxID).addEventListener("click", loginGoogle);
-  document.getElementById(loginAnonymousBoxID).addEventListener("click", loginAnonymous);
   if (session?.user) {
     const user = session.user;
     console.log("user:", user);
@@ -93,3 +90,7 @@ const logout = async () => {
   console.log("logout...");
   window.location.reload();
 };
+
+// 로그인 버튼 이벤트는 한 번만 등록
+document.getElementById(loginBoxID).addEventListener("click", loginGoogle);
+document.getElementById(loginAnonymousBoxID).addEventListener("click", loginAnonymous);

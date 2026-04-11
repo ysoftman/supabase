@@ -1,5 +1,5 @@
 import { supabase } from "./common.js";
-import { makeDicebear, maxHeightUpdaters, showAlert, showConfirm } from "./utils.js";
+import { escapeHtml, makeDicebear, maxHeightUpdaters, showAlert, showConfirm } from "./utils.js";
 
 const INITIAL_LIMIT = 10;
 const MORE_LIMIT = 5;
@@ -30,13 +30,16 @@ const deleteMessage = async (id) => {
 const renderMessageRow = (row, currentUserId, imageName, listId) => {
   const d = new Date(row.created_at);
   const date = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
-  const user = row.user_name || "Unknown";
-  const msg = row.message.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+  const user = escapeHtml(row.user_name || "Unknown");
+  const msg = escapeHtml(row.message).replace(
+    /(https?:\/\/[^\s&]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>',
+  );
   const deleteBtn =
     currentUserId && row.user_id === currentUserId
-      ? ` <button class="nes-btn is-error msg-delete-btn" data-msg-id="${row.id}" data-image-name="${imageName}" data-list-id="${listId}">x</button>`
+      ? ` <button class="nes-btn is-error msg-delete-btn" data-msg-id="${row.id}" data-image-name="${escapeHtml(imageName)}" data-list-id="${escapeHtml(listId)}">x</button>`
       : "";
-  const seed = row.user_id || user;
+  const seed = row.user_id || row.user_name || "Unknown";
   const avatar = `<img class="msg-avatar" src="${makeDicebear(seed)}" title="dicebear pixel-art">`;
   return `<div class="msg-item">${avatar}<span class="nes-text is-disabled">${date}</span> <span class="nes-text is-primary">${user}</span> ${msg}${deleteBtn}</div>`;
 };

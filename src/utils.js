@@ -26,6 +26,10 @@ export const makeDicebear = (seed) => {
   return avatar.toDataUri();
 };
 
+// HTML 특수문자 escape (XSS 방지)
+export const escapeHtml = (str) =>
+  str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 // 이미지별 textarea max-height 재계산 함수 저장 (image.js, message.js 에서 공유)
 export const maxHeightUpdaters = {};
 

@@ -2,6 +2,7 @@ import { supabase } from "./common.js";
 import { loadMessages, saveMessage } from "./message.js";
 import { deleteFile, getImageDirs, getMeta, moveFile, STORAGE_BUCKET } from "./storage.js";
 import {
+  escapeHtml,
   formatDate,
   formatFileSize,
   getByteLength,
@@ -22,7 +23,7 @@ const showImageOverlay = (url, name) => {
   overlay.innerHTML =
     `<div class="img-overlay-wrap">` +
     `<div class="img-overlay-info">` +
-    `<span class="img-overlay-path">${name}</span>` +
+    `<span class="img-overlay-path">${escapeHtml(name)}</span>` +
     `<span class="img-overlay-size" id="overlay_size_${toSafeId(name)}"></span>` +
     `</div>` +
     `<img src="${url}">` +
@@ -107,7 +108,9 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       `<span class="img-meta">` +
       (meta.size ? `<span class="img-file-size">${formatFileSize(meta.size)}</span> ` : "") +
       (meta.created_at ? `<span class="img-upload-time">${formatDate(meta.created_at)}</span> ` : "") +
-      (uploadInfo.user_name ? `${uploaderAvatar}<span class="img-uploader">${uploadInfo.user_name}</span> ` : "") +
+      (uploadInfo.user_name
+        ? `${uploaderAvatar}<span class="img-uploader">${escapeHtml(uploadInfo.user_name)}</span> `
+        : "") +
       `</span>`;
     const moveHtml = `<span class="img-file-move" id="file_move_${msgId}" style="display:none"></span>`;
     const deleteHtml = `<span class="img-file-delete" id="file_del_${msgId}" style="display:none"></span>`;
@@ -117,16 +120,16 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
     } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(name);
     let mediaHtml;
     if (isImage) {
-      mediaHtml = `<img class="thumbnail" loading="lazy" src="${publicUrl}" data-name="${name}" data-url="${publicUrl}">`;
+      mediaHtml = `<img class="thumbnail" loading="lazy" src="${publicUrl}" data-name="${escapeHtml(name)}" data-url="${publicUrl}">`;
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> <span id="${name}_img_size"></span> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> <span id="${name}_img_size"></span> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_img">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     } else {
       mediaHtml = `<video width="640" controls autoplay muted><source type="video/mp4" src=${publicUrl}></video>`;
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_video">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     }
     document.getElementById(htmlId).insertAdjacentHTML("beforeend", item);
