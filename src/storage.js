@@ -106,7 +106,7 @@ export const moveFile = async (oldPath, newDir) => {
     alert(`Move error: ${error.message}`);
     return null;
   }
-  await supabase.from("image_uploads").update({ file_path: newPath }).eq("file_path", oldPath);
+  await supabase.from("image_info").update({ file_path: newPath }).eq("file_path", oldPath);
   await supabase.from("image_messages").update({ image_name: newPath }).eq("image_name", oldPath);
   return newPath;
 };
@@ -123,11 +123,7 @@ export const deleteFile = async (filePath) => {
   // admin 또는 본인 업로드 파일인지 확인
   const { data: adminRow } = await supabase.from("admins").select("user_id").eq("user_id", user.id).single();
   if (!adminRow) {
-    const { data: uploadRow } = await supabase
-      .from("image_uploads")
-      .select("user_id")
-      .eq("file_path", filePath)
-      .single();
+    const { data: uploadRow } = await supabase.from("image_info").select("user_id").eq("file_path", filePath).single();
     if (!uploadRow || uploadRow.user_id !== user.id) {
       alert("You can only delete files you uploaded");
       return false;
@@ -138,7 +134,7 @@ export const deleteFile = async (filePath) => {
     alert(`Delete error: ${error.message}`);
     return false;
   }
-  await supabase.from("image_uploads").delete().eq("file_path", filePath);
+  await supabase.from("image_info").delete().eq("file_path", filePath);
   await supabase.from("image_messages").delete().eq("image_name", filePath);
   return true;
 };
@@ -174,13 +170,13 @@ export const uploadFile = async (file) => {
   const userName = user.is_anonymous
     ? "Anonymous"
     : user.user_metadata?.full_name || user.email?.split("@")[0] || "Unknown";
-  const { error: metaError } = await supabase.from("image_uploads").insert({
+  const { error: metaError } = await supabase.from("image_info").insert({
     file_path: filePath,
     user_name: userName,
     user_id: user.id,
   });
   if (metaError) {
-    console.log("image_uploads insert error:", metaError);
+    console.log("image_info insert error:", metaError);
   }
   return true;
 };

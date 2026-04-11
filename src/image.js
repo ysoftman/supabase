@@ -73,7 +73,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
   const uploaderMap = {};
   if (imageNames.length > 0) {
     const { data: uploadData } = await supabase
-      .from("image_uploads")
+      .from("image_info")
       .select("file_path, user_name, user_id")
       .in("file_path", imageNames);
     if (uploadData) {

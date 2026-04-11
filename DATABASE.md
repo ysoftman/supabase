@@ -55,10 +55,10 @@ CREATE POLICY "Allow delete own messages" ON image_messages
   FOR DELETE USING (auth.uid() = user_id);
 ```
 
-## image_uploads 테이블
+## image_info 테이블
 
 ```sql
-CREATE TABLE IF NOT EXISTS image_uploads (
+CREATE TABLE IF NOT EXISTS image_info (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   file_path TEXT NOT NULL,
   user_name TEXT NOT NULL DEFAULT '',
@@ -66,14 +66,19 @@ CREATE TABLE IF NOT EXISTS image_uploads (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-ALTER TABLE image_uploads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE image_info ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow read" ON image_uploads FOR SELECT USING (true);
+CREATE POLICY "Allow read" ON image_info FOR SELECT USING (true);
 
-CREATE POLICY "Allow insert for authenticated" ON image_uploads
+CREATE POLICY "Allow insert for authenticated" ON image_info
   FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
-CREATE POLICY "Allow delete" ON image_uploads
+CREATE POLICY "Allow update for admin" ON image_info
+  FOR UPDATE USING (
+    EXISTS (SELECT 1 FROM admins WHERE admins.user_id = auth.uid())
+  );
+
+CREATE POLICY "Allow delete" ON image_info
   FOR DELETE USING (
     auth.uid() = user_id
     OR EXISTS (SELECT 1 FROM admins WHERE admins.user_id = auth.uid())
