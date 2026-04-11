@@ -51,6 +51,15 @@
   --navbar-border-color: var(--color-border);
 }
 
+html,
+body,
+pre,
+code,
+kbd,
+samp {
+  font-size: 14px;
+}
+
 body {
   background: var(--body-bg);
   color: var(--body-text);
@@ -168,7 +177,7 @@ img.thumbnail:hover {
   background: var(--color-bg-overlay-bar);
   border-radius: 4px;
   font-size: 14px;
-  font-family: "Press Start 2P", monospace;
+  font-family: "Press Start 2P", cursive;
 }
 
 .img-overlay-path {
@@ -329,9 +338,52 @@ img.thumbnail:hover {
   }
 }
 
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+.navbar-flex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+}
+
+.navbar-login {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#load_img_buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.nes-container.with-title > .title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 @media screen and (max-width: 768px) {
   .img-content-row {
     flex-direction: column;
+  }
+
+  img.thumbnail {
+    max-width: 100%;
+    max-height: none;
+  }
+
+  .img-overlay-info {
+    flex-wrap: wrap;
+    font-size: 11px;
+    gap: 6px;
   }
 }
 
@@ -490,10 +542,91 @@ img.thumbnail:hover {
 }
 
 @media screen and (max-width: 600px) {
+  html,
+  body,
+  pre,
+  code,
+  kbd,
+  samp {
+    font-size: 11px;
+  }
+
+  body {
+    padding: 2px;
+  }
+
   body,
   #message {
     background: var(--body-bg);
     margin-top: 0;
     box-shadow: none;
+  }
+
+  .navbar-flex {
+    gap: 4px;
+    padding: 6px 2px;
+  }
+
+  .navbar-flex .nes-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .nes-container {
+    padding: 8px 6px;
+    margin: 4px 0;
+  }
+
+  .nes-container.with-title {
+    padding-top: 12px;
+  }
+
+  .nes-container.with-title > .title {
+    font-size: 10px;
+  }
+
+  .img-meta {
+    font-size: 9px;
+  }
+
+  .img-overlay-info {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .msg-item {
+    font-size: 10px;
+  }
+
+  .upload-dir-picker-inner {
+    max-width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .upload-dir-picker-inner .nes-btn,
+  .upload-dir-picker-inner .upload-dir-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+    margin: 3px;
+  }
+
+  .version-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  #load_img_buttons .nes-btn {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .dialog-inner {
+    max-width: 95%;
+  }
+
+  .dialog-inner .nes-btn {
+    font-size: 10px;
+    padding: 4px 8px;
   }
 }

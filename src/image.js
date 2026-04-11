@@ -136,7 +136,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
         `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> <span id="${name}_img_size"></span> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_img">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     } else {
-      mediaHtml = `<video width="640" controls autoplay muted><source type="video/mp4" src="${publicUrl}"></video>`;
+      mediaHtml = `<video controls autoplay muted><source type="video/mp4" src="${publicUrl}"></video>`;
       item =
         `<div class="nes-container with-title">` +
         `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +

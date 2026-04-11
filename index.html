@@ -1,7 +1,7 @@
-<html>
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>sbbs</title>
   </head>
   <body>
@@ -12,32 +12,29 @@
       code,
       kbd,
       samp {
-        font-family: "Press Start 2P";
-        font-size: 14px;
+        font-family: "Press Start 2P", cursive;
         background: var(--body-bg);
         color: var(--body-text);
       }
     </style>
     <div class="index-navbar">
-      <div class="container">
-        <h2>
-          <a href="index.html">
-            <button type="button" class="nes-btn is-success">
-              <b>index</b>
-            </button>
-          </a>
-          <button type="button" class="nes-btn is-purple" id="btn_version">
-            version
+      <div class="container navbar-flex">
+        <a href="index.html">
+          <button type="button" class="nes-btn is-success">
+            <b>index</b>
           </button>
-          <span>
-            <button class="nes-btn is-primary" id="login_anonymous">
-              login anonymous
-            </button>
-            <button class="nes-btn is-primary" id="login_google">
-              login google
-            </button>
-          </span>
-        </h2>
+        </a>
+        <button type="button" class="nes-btn is-purple" id="btn_version">
+          version
+        </button>
+        <span class="navbar-login">
+          <button type="button" class="nes-btn is-primary" id="login_anonymous">
+            anonymous
+          </button>
+          <button type="button" class="nes-btn is-primary" id="login_google">
+            google
+          </button>
+        </span>
       </div>
     </div>
     <div class="index-body nes-text">
