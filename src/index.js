@@ -16,7 +16,7 @@ let allImagesLoaded = false;
 async function loadImg(path, scrollTarget) {
   currentDir = path;
   currentOffset = 0;
-  allImagesLoaded = false;
+  allImagesLoaded = true;
   document.getElementById("images").innerHTML = "";
 
   const imgFiles = await getImageList(path, 0, IMG_PAGE_SIZE + 1);
