@@ -198,7 +198,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
         textarea.addEventListener("input", () => {
           const bytes = getByteLength(textarea.value);
           charcountEl.textContent = `${bytes}/${MAX_MSG_BYTES} bytes`;
-          charcountEl.style.color = bytes > MAX_MSG_BYTES ? "#e76e55" : "#888";
+          charcountEl.classList.toggle("is-over", bytes > MAX_MSG_BYTES);
         });
       }
       const saveBtn = document.getElementById(`msg_save_${msgId}`);
