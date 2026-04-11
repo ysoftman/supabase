@@ -47,9 +47,13 @@ export const showAlert = (message) => {
     document.body.appendChild(overlay);
     const ok = overlay.querySelector(".dialog-ok");
     ok.focus();
-    ok.addEventListener("click", () => {
+    const close = () => {
       overlay.remove();
       resolve();
+    };
+    ok.addEventListener("click", close);
+    overlay.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") close();
     });
   });
 };
@@ -69,13 +73,18 @@ export const showConfirm = (message) => {
     document.body.appendChild(overlay);
     const yes = overlay.querySelector(".dialog-yes");
     yes.focus();
-    yes.addEventListener("click", () => {
+    const accept = () => {
       overlay.remove();
       resolve(true);
-    });
-    overlay.querySelector(".dialog-no").addEventListener("click", () => {
+    };
+    const cancel = () => {
       overlay.remove();
       resolve(false);
+    };
+    yes.addEventListener("click", accept);
+    overlay.querySelector(".dialog-no").addEventListener("click", cancel);
+    overlay.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") cancel();
     });
   });
 };

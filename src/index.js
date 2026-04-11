@@ -17,7 +17,12 @@ async function loadImg(path, scrollTarget) {
   currentDir = path;
   currentOffset = 0;
   allImagesLoaded = true;
-  document.getElementById("images").innerHTML = "";
+  const imagesEl = document.getElementById("images");
+  imagesEl.innerHTML =
+    '<div class="loading-indicator">' +
+    '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>' +
+    " loading" +
+    "</div>";
 
   const imgFiles = await getImageList(path, 0, IMG_PAGE_SIZE + 1);
   const hasMore = imgFiles.length > IMG_PAGE_SIZE;
