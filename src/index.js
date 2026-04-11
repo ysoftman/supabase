@@ -33,8 +33,8 @@ const showImageOverlay = (url, name) => {
   });
 };
 
-export const loadImages = async (htmlId, imageNames) => {
-  document.getElementById(htmlId).innerHTML = "";
+export const loadImages = async (htmlId, imageNames, append = false) => {
+  if (!append) document.getElementById(htmlId).innerHTML = "";
   let isImage = true;
   let item = "";
   for (const name of imageNames) {
@@ -309,11 +309,12 @@ export const getImageDirs = async (path) => {
   return dirs;
 };
 
-// supabase storage 에 저장된 이미지 list
-export const getImageList = async (path) => {
+// supabase storage 에 저장된 이미지 list (최신순, 페이지네이션)
+export const getImageList = async (path, offset = 0, limit = 1000) => {
   const { data, error } = await supabase.storage.from(STORAGE_BUCKET).list(path, {
-    limit: 1000,
-    sortBy: { column: "name", order: "asc" },
+    limit: limit,
+    offset: offset,
+    sortBy: { column: "created_at", order: "desc" },
   });
   if (error) {
     console.log("getImageList error:", error);
@@ -367,10 +368,27 @@ document.getElementById("btn_version").addEventListener("click", () => {
   el.style.display = el.style.display === "none" ? "" : "none";
 });
 
+const IMG_PAGE_SIZE = 10;
+let currentDir = "";
+let currentOffset = 0;
+let isLoadingMore = false;
+let allImagesLoaded = false;
+
 async function loadImg(path, scrollTarget) {
-  const imgNames = await getImageList(path);
-  // image div 태그를 구성해 이미지 순서를 보장
-  await loadImages("images", imgNames);
+  currentDir = path;
+  currentOffset = 0;
+  allImagesLoaded = false;
+  document.getElementById("images").innerHTML = "";
+
+  const imgNames = await getImageList(path, 0, IMG_PAGE_SIZE + 1);
+  const hasMore = imgNames.length > IMG_PAGE_SIZE;
+  const namesToLoad = hasMore ? imgNames.slice(0, IMG_PAGE_SIZE) : imgNames;
+  allImagesLoaded = !hasMore;
+  currentOffset = namesToLoad.length;
+
+  await loadImages("images", namesToLoad);
+  updateSentinel();
+
   if (scrollTarget) {
     const targetId = `${scrollTarget}_img`;
     const el = document.getElementById(targetId);
@@ -379,6 +397,50 @@ async function loadImg(path, scrollTarget) {
     }
   }
 }
+
+async function loadMoreImages() {
+  if (isLoadingMore || allImagesLoaded) return;
+  isLoadingMore = true;
+
+  const imgNames = await getImageList(currentDir, currentOffset, IMG_PAGE_SIZE + 1);
+  const hasMore = imgNames.length > IMG_PAGE_SIZE;
+  const namesToLoad = hasMore ? imgNames.slice(0, IMG_PAGE_SIZE) : imgNames;
+  allImagesLoaded = !hasMore;
+  currentOffset += namesToLoad.length;
+
+  if (namesToLoad.length > 0) {
+    await loadImages("images", namesToLoad, true);
+  }
+  isLoadingMore = false;
+  updateSentinel();
+}
+
+// 스크롤 감지용 sentinel
+const sentinel = document.createElement("div");
+sentinel.id = "scroll-sentinel";
+document.getElementById("images").after(sentinel);
+
+const updateSentinel = () => {
+  if (allImagesLoaded) {
+    sentinel.style.display = "none";
+    sentinel.innerHTML = "";
+  } else {
+    sentinel.style.display = "";
+    sentinel.innerHTML =
+      '<div class="loading-indicator">' +
+      '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>' +
+      " loading" +
+      "</div>";
+  }
+};
+
+const scrollObserver = new IntersectionObserver(
+  (entries) => {
+    if (entries[0].isIntersecting) loadMoreImages();
+  },
+  { rootMargin: "300px" },
+);
+scrollObserver.observe(sentinel);
 
 // URL hash 에서 이미지 경로 파싱 (예: #dir/image.jpg → { dir: "dir", image: "dir/image.jpg" })
 const parseHash = () => {
@@ -395,9 +457,6 @@ for (const dir of imgDirs) {
   const item = `<button class="nes-btn is-primary" id='load_${dir}'>${dir}</button>`;
   document.getElementById("load_img_buttons").insertAdjacentHTML("beforeend", item);
   document.getElementById(`load_${dir}`).addEventListener("click", () => {
-    if (document.getElementById("images") != null) {
-      document.getElementById("images").innerHTML = "";
-    }
     loadImg(dir);
   });
 }
