@@ -96,6 +96,21 @@ export const getVisitCnt = async (docName, htmlId) => {
   document.getElementById(htmlId).innerHTML = `${data}`;
 };
 
+// 파일 이동 (storage move + DB 경로 업데이트, admin 전용)
+export const moveFile = async (oldPath, newDir) => {
+  const fileName = oldPath.split("/").pop();
+  const newPath = `${newDir}/${fileName}`;
+  if (oldPath === newPath) return null;
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).move(oldPath, newPath);
+  if (error) {
+    alert(`Move error: ${error.message}`);
+    return null;
+  }
+  await supabase.from("image_uploads").update({ file_path: newPath }).eq("file_path", oldPath);
+  await supabase.from("image_messages").update({ image_name: newPath }).eq("image_name", oldPath);
+  return newPath;
+};
+
 // 파일 삭제 (storage + metadata, 본인 업로드만)
 export const deleteFile = async (filePath) => {
   const {

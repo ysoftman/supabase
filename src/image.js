@@ -1,6 +1,6 @@
 import { supabase } from "./common.js";
 import { loadMessages, saveMessage } from "./message.js";
-import { deleteFile, getMeta, STORAGE_BUCKET } from "./storage.js";
+import { deleteFile, getImageDirs, getMeta, moveFile, STORAGE_BUCKET } from "./storage.js";
 import {
   formatDate,
   formatFileSize,
@@ -30,6 +30,41 @@ const showImageOverlay = (url, name) => {
   getMeta(url, (_err, img) => {
     const sizeEl = overlay.querySelector(`#overlay_size_${toSafeId(name)}`);
     if (sizeEl) sizeEl.textContent = `${img.naturalWidth} x ${img.naturalHeight}`;
+  });
+};
+
+// 파일 이동 카테고리 선택 피커 (admin 전용)
+const showMovePicker = (currentDir, onSelect) => {
+  const existing = document.getElementById("move-dir-picker");
+  if (existing) existing.remove();
+
+  getImageDirs("").then((dirs) => {
+    const picker = document.createElement("div");
+    picker.id = "move-dir-picker";
+    picker.className = "upload-dir-picker";
+    picker.innerHTML =
+      '<div class="upload-dir-picker-inner nes-container is-dark">' +
+      "<p>move to</p>" +
+      dirs
+        .map(
+          (dir) =>
+            `<button class="nes-btn ${dir === currentDir ? "is-disabled" : "is-primary"} move-dir-btn" data-dir="${dir}" ${dir === currentDir ? "disabled" : ""}>${dir}</button>`,
+        )
+        .join(" ") +
+      '<br><br><button class="nes-btn is-error move-dir-cancel">cancel</button>' +
+      "</div>";
+    document.body.appendChild(picker);
+
+    picker.querySelector(".move-dir-cancel").addEventListener("click", () => picker.remove());
+    picker.addEventListener("click", (e) => {
+      if (e.target === picker) picker.remove();
+    });
+    for (const btn of picker.querySelectorAll(".move-dir-btn:not(:disabled)")) {
+      btn.addEventListener("click", () => {
+        picker.remove();
+        onSelect(btn.dataset.dir);
+      });
+    }
   });
 };
 
@@ -73,6 +108,7 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       (meta.created_at ? `<span class="img-upload-time">${formatDate(meta.created_at)}</span> ` : "") +
       (uploadInfo.user_name ? `${uploaderAvatar}<span class="img-uploader">${uploadInfo.user_name}</span> ` : "") +
       `</span>`;
+    const moveHtml = `<span class="img-file-move" id="file_move_${msgId}" style="display:none"></span>`;
     const deleteHtml = `<span class="img-file-delete" id="file_del_${msgId}" style="display:none"></span>`;
     // public URL을 즉시 생성하여 img/video 태그를 바로 포함
     const {
@@ -83,13 +119,13 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       mediaHtml = `<img class="thumbnail" loading="lazy" src="${publicUrl}" data-name="${name}" data-url="${publicUrl}">`;
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> <span id="${name}_img_size"></span> ${metaHtml} ${deleteHtml}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> <span id="${name}_img_size"></span> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_img">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     } else {
       mediaHtml = `<video width="640" controls autoplay muted><source type="video/mp4" src=${publicUrl}></video>`;
       item =
         `<div class="nes-container with-title">` +
-        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> ${metaHtml} ${deleteHtml}</p>` +
+        `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${name}</a> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_video">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     }
     document.getElementById(htmlId).insertAdjacentHTML("beforeend", item);
@@ -146,8 +182,26 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
         document.getElementById(`${name}_img_size`).innerHTML = imgSize;
       });
     }
-    // 본인 업로드 파일만 삭제 버튼 표시
+    // admin 전용 파일 이동 버튼
     const msgId = toSafeId(name);
+    if (isAdmin) {
+      const moveEl = document.getElementById(`file_move_${msgId}`);
+      if (moveEl) {
+        moveEl.style.display = "";
+        moveEl.innerHTML = `<button class="nes-btn is-warning img-file-move-btn">move</button>`;
+        moveEl.querySelector(".img-file-move-btn").addEventListener("click", () => {
+          const currentDir = name.includes("/") ? name.substring(0, name.indexOf("/")) : "";
+          showMovePicker(currentDir, async (targetDir) => {
+            const newPath = await moveFile(name, targetDir);
+            if (newPath) {
+              const container = moveEl.closest(".nes-container");
+              if (container) container.remove();
+            }
+          });
+        });
+      }
+    }
+    // 본인 업로드 파일만 삭제 버튼 표시
     const uploadInfo = uploaderMap[name] || {};
     if (currentUser && (isAdmin || uploadInfo.user_id === currentUser.id)) {
       const delEl = document.getElementById(`file_del_${msgId}`);

@@ -403,6 +403,7 @@ img.thumbnail:hover {
   color: var(--img-dimension-color) !important;
 }
 
+.img-file-move-btn,
 .img-file-delete-btn {
   padding: 0 4px;
   min-height: auto;
