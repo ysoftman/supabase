@@ -412,6 +412,10 @@ video {
   gap: 6px;
 }
 
+.nes-container.with-title {
+  overflow: visible;
+}
+
 .nes-container.with-title > .title {
   white-space: normal;
   word-break: break-all;
