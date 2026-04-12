@@ -1,13 +1,6 @@
 import { supabase } from "./common.js";
 import { loadMessages, saveMessage } from "./message.js";
 import { deleteFile, getImageDirs, getMeta, moveFile, STORAGE_BUCKET } from "./storage.js";
-
-// admin 상태 캐싱 (세션 내 변경 없음)
-let cachedAdminStatus = null;
-supabase.auth.onAuthStateChange(() => {
-  cachedAdminStatus = null;
-});
-
 import {
   escapeHtml,
   formatDate,
@@ -19,6 +12,12 @@ import {
   showConfirm,
   toSafeId,
 } from "./utils.js";
+
+// admin 상태 캐싱 (세션 내 변경 없음)
+let cachedAdminStatus = null;
+supabase.auth.onAuthStateChange(() => {
+  cachedAdminStatus = null;
+});
 
 // 이미지 오버레이 표시 (파일 경로 + 이미지 사이즈)
 const showImageOverlay = (url, name) => {
@@ -36,6 +35,11 @@ const showImageOverlay = (url, name) => {
     `<img src="${url}">` +
     `</div>`;
   document.body.appendChild(overlay);
+  overlay.tabIndex = -1;
+  overlay.focus();
+  overlay.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") overlay.remove();
+  });
   getMeta(url, (err, img) => {
     if (err || !img) return;
     const sizeEl = overlay.querySelector(`#overlay_size_${toSafeId(name)}`);
@@ -69,6 +73,9 @@ const showMovePicker = (currentDir, onSelect) => {
     picker.addEventListener("click", (e) => {
       if (e.target === picker) picker.remove();
     });
+    picker.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") picker.remove();
+    });
     for (const btn of picker.querySelectorAll(".move-dir-btn:not(:disabled)")) {
       btn.addEventListener("click", () => {
         picker.remove();
@@ -93,10 +100,8 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
     }
   }
   const publicUrlMap = {};
-  let isImage = true;
-  let item = "";
   for (const name of imageNames) {
-    isImage = !name.endsWith("mp4");
+    const isImage = !name.endsWith("mp4");
     const msgId = toSafeId(name);
     const msgHtml =
       `<div class="img-message" id="msg_form_${msgId}" style="display:none">` +
@@ -128,15 +133,15 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       data: { publicUrl },
     } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(name);
     publicUrlMap[name] = publicUrl;
-    let mediaHtml;
+    let item;
     if (isImage) {
-      mediaHtml = `<img class="thumbnail" loading="lazy" src="${publicUrl}" alt="${escapeHtml(name)}" data-name="${escapeHtml(name)}" data-url="${publicUrl}">`;
+      const mediaHtml = `<img class="thumbnail" loading="lazy" src="${publicUrl}" alt="${escapeHtml(name)}" data-name="${escapeHtml(name)}" data-url="${publicUrl}">`;
       item =
         `<div class="nes-container with-title">` +
         `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> <span id="${name}_img_size"></span> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
         `<div class="img-content-row"><div id="${name}_img">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`;
     } else {
-      mediaHtml = `<video controls autoplay muted><source type="video/mp4" src="${publicUrl}"></video>`;
+      const mediaHtml = `<video controls autoplay muted><source type="video/mp4" src="${publicUrl}"></video>`;
       item =
         `<div class="nes-container with-title">` +
         `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
@@ -157,8 +162,9 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
     isAdmin = cachedAdminStatus;
   }
 
+  const messageLoadPromises = [];
   for (const name of imageNames) {
-    isImage = !name.endsWith("mp4");
+    const isImage = !name.endsWith("mp4");
     const id = isImage ? `${name}_img` : `${name}_video`;
     if (document.getElementById(id) == null) {
       continue;
@@ -233,8 +239,8 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
         });
       }
     }
-    // 메시지 로드
-    await loadMessages(name, `msg_list_${msgId}`, currentUser?.id);
+    // 메시지 로드 (병렬 실행을 위해 promise 수집)
+    messageLoadPromises.push(loadMessages(name, `msg_list_${msgId}`, currentUser?.id));
     // 로그인한 사용자만 메시지 입력 가능
     if (currentUser) {
       const formEl = document.getElementById(`msg_form_${msgId}`);
@@ -272,4 +278,5 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       }
     }
   }
+  await Promise.all(messageLoadPromises);
 };

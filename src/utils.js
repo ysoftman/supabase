@@ -40,10 +40,11 @@ export const showAlert = (message) => {
     overlay.className = "dialog-overlay";
     overlay.innerHTML =
       '<div class="dialog-inner nes-container is-dark">' +
-      `<p class="dialog-message">${message}</p>` +
+      '<p class="dialog-message"></p>' +
       '<div class="dialog-buttons">' +
       '<button class="nes-btn is-primary dialog-ok">OK</button>' +
       "</div></div>";
+    overlay.querySelector(".dialog-message").textContent = message;
     document.body.appendChild(overlay);
     const ok = overlay.querySelector(".dialog-ok");
     ok.focus();
@@ -65,11 +66,12 @@ export const showConfirm = (message) => {
     overlay.className = "dialog-overlay";
     overlay.innerHTML =
       '<div class="dialog-inner nes-container is-dark">' +
-      `<p class="dialog-message">${message}</p>` +
+      '<p class="dialog-message"></p>' +
       '<div class="dialog-buttons">' +
       '<button class="nes-btn is-primary dialog-yes">OK</button> ' +
       '<button class="nes-btn is-error dialog-no">Cancel</button>' +
       "</div></div>";
+    overlay.querySelector(".dialog-message").textContent = message;
     document.body.appendChild(overlay);
     const yes = overlay.querySelector(".dialog-yes");
     yes.focus();

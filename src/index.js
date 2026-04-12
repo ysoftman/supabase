@@ -7,7 +7,7 @@ import { loadImages } from "./image.js";
 import { getImageDirs, getImageList, getViewCnt, setUploadDir, uploadDir, uploadFile } from "./storage.js";
 import { showAlert } from "./utils.js";
 
-const IMG_PAGE_SIZE = 10;
+const IMG_PAGE_SIZE = 2;
 let currentDir = "";
 let currentOffset = 0;
 let isLoadingMore = false;
@@ -199,6 +199,9 @@ const showUploadDirPicker = (dirs) => {
   picker.querySelector(".upload-dir-cancel").addEventListener("click", () => picker.remove());
   picker.addEventListener("click", (e) => {
     if (e.target === picker) picker.remove();
+  });
+  picker.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") picker.remove();
   });
   // 기존 카테고리 선택
   for (const btn of picker.querySelectorAll(".upload-dir-btn")) {

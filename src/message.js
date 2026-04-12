@@ -32,7 +32,7 @@ const renderMessageRow = (row, currentUserId, imageName, listId) => {
   const date = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
   const user = escapeHtml(row.user_name || "Unknown");
   const msg = escapeHtml(row.message).replace(
-    /(https?:\/\/[^\s&]+)/g,
+    /(https?:\/\/[^\s<]+)/g,
     '<a href="$1" target="_blank" rel="noopener">$1</a>',
   );
   const deleteBtn =
@@ -61,7 +61,7 @@ export const loadMessages = async (imageName, listId, currentUserId, offset = 0)
     .range(offset, offset + limit);
   if (error) {
     console.warn("loadMessages error:", error);
-    el.innerHTML = `<div class="msg-item"><span class="nes-text is-error">${error.message}</span></div>`;
+    el.innerHTML = `<div class="msg-item"><span class="nes-text is-error">${escapeHtml(error.message)}</span></div>`;
     return;
   }
   if (!data || data.length === 0) {
