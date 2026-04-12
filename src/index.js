@@ -13,6 +13,14 @@ let currentOffset = 0;
 let isLoadingMore = false;
 let allImagesLoaded = false;
 
+const buildMetaMap = (files) => {
+  const metaMap = {};
+  for (const f of files) {
+    metaMap[f.name] = { created_at: f.created_at, size: f.size };
+  }
+  return metaMap;
+};
+
 async function loadImg(path, scrollTarget) {
   currentDir = path;
   currentOffset = 0;
@@ -31,10 +39,7 @@ async function loadImg(path, scrollTarget) {
   currentOffset = filesToLoad.length;
 
   const imgNames = filesToLoad.map((f) => f.name);
-  const metaMap = {};
-  for (const f of filesToLoad) {
-    metaMap[f.name] = { created_at: f.created_at, size: f.size };
-  }
+  const metaMap = buildMetaMap(filesToLoad);
   await loadImages("images", imgNames, metaMap);
   updateSentinel();
   if (scrollTarget) {
@@ -58,10 +63,7 @@ async function loadMoreImages() {
 
   if (filesToLoad.length > 0) {
     const imgNames = filesToLoad.map((f) => f.name);
-    const metaMap = {};
-    for (const f of filesToLoad) {
-      metaMap[f.name] = { created_at: f.created_at, size: f.size };
-    }
+    const metaMap = buildMetaMap(filesToLoad);
     await loadImages("images", imgNames, metaMap, true);
   }
   isLoadingMore = false;
@@ -118,6 +120,9 @@ document.getElementById("btn_version").addEventListener("click", () => {
 });
 
 const imgDirs = await getImageDirs("");
+if (imgDirs.length === 0) {
+  document.getElementById("images").innerHTML = '<p class="empty-state">No categories found</p>';
+}
 for (const dir of imgDirs) {
   const item = `<a class="nes-btn is-primary" id="load_${dir}" href="#${encodeURIComponent(dir)}">${dir}</a>`;
   document.getElementById("load_img_buttons").insertAdjacentHTML("beforeend", item);

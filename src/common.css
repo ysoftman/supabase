@@ -140,6 +140,12 @@ img.thumbnail:hover {
   cursor: pointer;
 }
 
+.dialog-overlay:focus-within,
+.upload-dir-picker:focus-within,
+.img-overlay:focus-within {
+  outline: none;
+}
+
 .dialog-inner,
 .upload-dir-picker-inner {
   cursor: default;

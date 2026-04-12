@@ -3,6 +3,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>sbbs</title>
+    <meta name="description" content="Simple BBS - retro-style bulletin board powered by Supabase">
+    <meta property="og:title" content="sbbs">
+    <meta property="og:description" content="Simple BBS - retro-style bulletin board powered by Supabase">
+    <meta property="og:type" content="website">
   </head>
   <body>
     <style>
@@ -17,7 +21,7 @@
         color: var(--body-text);
       }
     </style>
-    <div class="index-navbar">
+    <nav class="index-navbar" aria-label="Main navigation">
       <div class="container navbar-flex">
         <a href="index.html">
           <button type="button" class="nes-btn is-success">
@@ -36,8 +40,8 @@
           </button>
         </span>
       </div>
-    </div>
-    <div class="index-body nes-text">
+    </nav>
+    <main class="index-body nes-text">
       <div class="main" id="version_info" style="display: none">
         <div class="version-row">
           <p class="nes-balloon from-right is-dark">
@@ -73,7 +77,7 @@
         </span>
       </p>
       <div id="images" class="items"></div>
-    </div>
+    </main>
     <script type="module" src="./src/index.js"></script>
   </body>
 </html>

@@ -39,7 +39,7 @@ export const showAlert = (message) => {
     const overlay = document.createElement("div");
     overlay.className = "dialog-overlay";
     overlay.innerHTML =
-      '<div class="dialog-inner nes-container is-dark">' +
+      '<div class="dialog-inner nes-container is-dark" role="alertdialog" aria-modal="true">' +
       '<p class="dialog-message"></p>' +
       '<div class="dialog-buttons">' +
       '<button class="nes-btn is-primary dialog-ok">OK</button>' +
@@ -55,6 +55,24 @@ export const showAlert = (message) => {
     ok.addEventListener("click", close);
     overlay.addEventListener("keydown", (e) => {
       if (e.key === "Escape") close();
+      if (e.key === "Tab") {
+        const focusable = overlay.querySelectorAll(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     });
   });
 };
@@ -65,7 +83,7 @@ export const showConfirm = (message) => {
     const overlay = document.createElement("div");
     overlay.className = "dialog-overlay";
     overlay.innerHTML =
-      '<div class="dialog-inner nes-container is-dark">' +
+      '<div class="dialog-inner nes-container is-dark" role="dialog" aria-modal="true">' +
       '<p class="dialog-message"></p>' +
       '<div class="dialog-buttons">' +
       '<button class="nes-btn is-primary dialog-yes">OK</button> ' +
@@ -87,6 +105,24 @@ export const showConfirm = (message) => {
     overlay.querySelector(".dialog-no").addEventListener("click", cancel);
     overlay.addEventListener("keydown", (e) => {
       if (e.key === "Escape") cancel();
+      if (e.key === "Tab") {
+        const focusable = overlay.querySelectorAll(
+          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])",
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
     });
   });
 };

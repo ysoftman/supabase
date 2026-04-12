@@ -80,6 +80,9 @@ export const getViewCnt = async (docName, htmlId) => {
     const { data: row } = await supabase.from("index").select("view_cnt").eq("name", docName).single();
     if (row) {
       document.getElementById(htmlId).innerHTML = `${row.view_cnt}`;
+    } else {
+      await setViewDoc(docName);
+      document.getElementById(htmlId).innerHTML = "1";
     }
     return;
   }

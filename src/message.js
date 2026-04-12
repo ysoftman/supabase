@@ -33,7 +33,7 @@ const renderMessageRow = (row, currentUserId, imageName, listId) => {
   const user = escapeHtml(row.user_name || "Unknown");
   const msg = escapeHtml(row.message).replace(
     /(https?:\/\/[^\s<]+)/g,
-    '<a href="$1" target="_blank" rel="noopener">$1</a>',
+    '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
   );
   const deleteBtn =
     currentUserId && row.user_id === currentUserId
