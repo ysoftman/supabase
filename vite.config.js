@@ -6,8 +6,10 @@ function getGitInfo() {
     const lastGitTag = execSync("git describe main --tags --exact-match 2> /dev/null || echo 'develop'")
       .toString()
       .trim();
-    const lastGitCommitHash = execSync("git log main -1 --date=iso-strict --pretty=format:'%H'").toString().trim();
-    const lastGitCommitDate = execSync("git log main -1 --date=iso-strict --pretty=format:'%cd'").toString().trim();
+    const lastGitCommitHash = execSync("git log main -1 --pretty=format:'%h'").toString().trim();
+    const lastGitCommitDate = execSync("git log main -1 --date=format:'%Y-%m-%d %H:%M' --pretty=format:'%cd'")
+      .toString()
+      .trim();
     const lastGitCommitMessage = execSync("git log main -1 --pretty=format:'%s'").toString().trim();
     return {
       LAST_GIT_TAG: JSON.stringify(lastGitTag),

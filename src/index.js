@@ -84,6 +84,10 @@ const updateSentinel = () => {
       '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>' +
       " loading" +
       "</div>";
+    // 이미지가 적어 sentinel이 이미 viewport 안에 있으면
+    // IntersectionObserver가 재발화하지 않으므로 재등록하여 강제 평가
+    scrollObserver.unobserve(sentinel);
+    scrollObserver.observe(sentinel);
   }
 };
 
@@ -105,7 +109,7 @@ const parseHash = () => {
   return { dir, image: hash };
 };
 
-const version = `last_version: ${__LAST_VERSION_TAG__}<br>last_commit_hash: ${__LAST_COMMIT_HASH__}<br>last_commit_date: ${__LAST_COMMIT_DATE__}<br>last_commit_message: ${__LAST_COMMIT_MESSAGE__}<br>`;
+const version = `version: ${__LAST_VERSION_TAG__}<br>commit: ${__LAST_COMMIT_HASH__}<br>date: ${__LAST_COMMIT_DATE__}<br>message: ${__LAST_COMMIT_MESSAGE__}<br>`;
 document.getElementById("version").innerHTML = version;
 
 document.getElementById("btn_version").addEventListener("click", () => {
