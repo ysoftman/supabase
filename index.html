@@ -31,6 +31,11 @@
         <button type="button" class="nes-btn is-purple" id="btn_version">
           version
         </button>
+        <button type="button" class="nes-btn is-disabled" id="btn_my_likes" disabled>
+            ♥ my likes
+          </button>
+        <button type="button" class="nes-btn is-disabled" id="btn_upload" disabled>upload</button>
+        <input type="file" id="file_input" style="display: none" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.mp4" />
         <span class="navbar-login">
           <button type="button" class="nes-btn is-primary" id="login_anonymous">
             anonymous
@@ -65,16 +70,6 @@
       </div>
       <p>
         <span id="load_img_buttons"> </span>
-        <span id="upload_area" style="display: none">
-          <button type="button" class="nes-btn is-warning" id="btn_upload">upload</button>
-          <input
-            type="file"
-            id="file_input"
-            style="display: none"
-            multiple
-            accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.svg,.mp4"
-          />
-        </span>
       </p>
       <div id="images" class="items"></div>
     </main>

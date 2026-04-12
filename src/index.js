@@ -138,6 +138,10 @@ const updateActiveDir = (dir) => {
     if (!btn) continue;
     btn.className = d === dir ? "nes-btn is-success" : "nes-btn is-primary";
   }
+  const myLikesBtn = document.getElementById("btn_my_likes");
+  if (!myLikesBtn.disabled) {
+    myLikesBtn.className = dir === "__my_likes__" ? "nes-btn is-success" : "nes-btn is-error";
+  }
 };
 
 const loadDirFromHash = (info, force = false) => {
@@ -177,8 +181,49 @@ const {
   data: { user: currentUploadUser },
 } = await supabase.auth.getUser();
 if (currentUploadUser) {
-  document.getElementById("upload_area").style.display = "";
+  const uploadBtn = document.getElementById("btn_upload");
+  uploadBtn.disabled = false;
+  uploadBtn.className = "nes-btn is-warning";
 }
+// 구글 로그인 사용자만 "my likes" 버튼 활성화
+if (currentUploadUser && !currentUploadUser.is_anonymous) {
+  const myLikesBtn = document.getElementById("btn_my_likes");
+  myLikesBtn.disabled = false;
+  myLikesBtn.className = "nes-btn is-error";
+}
+
+document.getElementById("btn_my_likes").addEventListener("click", async () => {
+  updateActiveDir("__my_likes__");
+  loadedDir = "__my_likes__";
+  allImagesLoaded = true;
+  currentOffset = 0;
+
+  const imagesEl = document.getElementById("images");
+  imagesEl.innerHTML =
+    '<div class="loading-indicator">' +
+    '<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span>' +
+    " loading" +
+    "</div>";
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: likes } = await supabase
+    .from("image_likes")
+    .select("image_name")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (!likes || likes.length === 0) {
+    imagesEl.innerHTML = '<p class="empty-state">No liked images</p>';
+    updateSentinel();
+    return;
+  }
+
+  const imgNames = likes.map((l) => l.image_name);
+  await loadImages("images", imgNames, {});
+  updateSentinel();
+});
 
 // 업로드 디렉토리 선택 팝업
 const showUploadDirPicker = (dirs) => {

@@ -125,6 +125,7 @@ export const moveFile = async (oldPath, newDir) => {
     await showAlert(`image_messages update failed, move rolled back.\n${msgErr.message}`);
     return null;
   }
+  await supabase.from("image_likes").update({ image_name: newPath }).eq("image_name", oldPath);
   return newPath;
 };
 
@@ -153,6 +154,7 @@ export const deleteFile = async (filePath) => {
   }
   await supabase.from("image_info").delete().eq("file_path", filePath);
   await supabase.from("image_messages").delete().eq("image_name", filePath);
+  await supabase.from("image_likes").delete().eq("image_name", filePath);
   return true;
 };
 

@@ -1,12 +1,12 @@
 import { supabase } from "./common.js";
 import { loadMessages, saveMessage } from "./message.js";
-import { deleteFile, getImageDirs, getMeta, moveFile, STORAGE_BUCKET } from "./storage.js";
+import { STORAGE_BUCKET, deleteFile, getImageDirs, getMeta, moveFile } from "./storage.js";
 import {
+  MAX_MSG_BYTES,
   escapeHtml,
   formatDate,
   formatFileSize,
   getByteLength,
-  MAX_MSG_BYTES,
   makeDicebear,
   maxHeightUpdaters,
   showConfirm,
@@ -86,7 +86,7 @@ const showMovePicker = (currentDir, onSelect) => {
 };
 
 // 이미지/비디오 HTML 생성
-const buildImageHtml = (name, metaMap, uploaderMap, publicUrl) => {
+const buildImageHtml = (name, metaMap, uploaderMap, publicUrl, likeCountMap, userLikeSet) => {
   const isImage = !name.endsWith("mp4");
   const msgId = toSafeId(name);
   const msgHtml =
@@ -112,20 +112,27 @@ const buildImageHtml = (name, metaMap, uploaderMap, publicUrl) => {
       ? `${uploaderAvatar}<span class="img-uploader">${escapeHtml(uploadInfo.user_name)}</span> `
       : "") +
     `</span>`;
+  const likeCount = likeCountMap[name] || 0;
+  const isLiked = userLikeSet.has(name);
+  const likeHtml =
+    `<span class="img-like" id="like_${msgId}">` +
+    `<i class="nes-icon is-small ${isLiked ? "heart" : "heart is-transparent"} like-heart" ` +
+    `data-name="${escapeHtml(name)}" data-liked="${isLiked}"></i>` +
+    `<span class="like-count">${likeCount || ""}</span></span>`;
   const moveHtml = `<span class="img-file-move" id="file_move_${msgId}" style="display:none"></span>`;
   const deleteHtml = `<span class="img-file-delete" id="file_del_${msgId}" style="display:none"></span>`;
   if (isImage) {
     const mediaHtml = `<img class="thumbnail" loading="lazy" src="${publicUrl}" alt="${escapeHtml(name)}" data-name="${escapeHtml(name)}" data-url="${publicUrl}">`;
     return (
       `<div class="nes-container with-title">` +
-      `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> <span id="${name}_img_size"></span> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
+      `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> <span id="${name}_img_size"></span> ${metaHtml} ${likeHtml} ${moveHtml} ${deleteHtml}</p>` +
       `<div class="img-content-row"><div id="${name}_img">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`
     );
   }
   const mediaHtml = `<video controls autoplay muted><source type="video/mp4" src="${publicUrl}"></video>`;
   return (
     `<div class="nes-container with-title">` +
-    `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> ${metaHtml} ${moveHtml} ${deleteHtml}</p>` +
+    `<p class="title"><a class="img-link" href="#${encodeURIComponent(name)}">${escapeHtml(name)}</a> ${metaHtml} ${likeHtml} ${moveHtml} ${deleteHtml}</p>` +
     `<div class="img-content-row"><div id="${name}_video">${mediaHtml}</div><div class="img-side-msg">${msgHtml}</div></div></div>`
   );
 };
@@ -207,6 +214,24 @@ const setupImageHandlers = (name, publicUrlMap, currentUser, isAdmin, uploaderMa
       });
     }
   }
+  // 구글 로그인 사용자만 좋아요 클릭 가능 (anonymous 제외)
+  if (currentUser && !currentUser.is_anonymous) {
+    const likeEl = document.getElementById(`like_${msgId}`);
+    const heartEl = likeEl?.querySelector(".like-heart");
+    if (heartEl) {
+      heartEl.classList.add("clickable");
+      heartEl.addEventListener("click", async () => {
+        const { data, error } = await supabase.rpc("toggle_like", { p_image_name: name });
+        if (error) {
+          console.warn("toggle_like error:", error);
+          return;
+        }
+        heartEl.dataset.liked = data.liked;
+        heartEl.className = `nes-icon is-small ${data.liked ? "heart" : "heart is-transparent"} like-heart clickable`;
+        likeEl.querySelector(".like-count").textContent = data.like_count || "";
+      });
+    }
+  }
   // 메시지 로드 (병렬 실행을 위해 promise 수집)
   messageLoadPromises.push(loadMessages(name, `msg_list_${msgId}`, currentUser?.id));
   // 로그인한 사용자만 메시지 입력 가능
@@ -261,6 +286,35 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       }
     }
   }
+  // 로그인 상태 확인 (admin 여부는 캐싱)
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser();
+
+  // 좋아요 수 batch 조회
+  const likeCountMap = {};
+  if (imageNames.length > 0) {
+    const { data: likeCounts } = await supabase.from("image_likes").select("image_name").in("image_name", imageNames);
+    if (likeCounts) {
+      for (const row of likeCounts) {
+        likeCountMap[row.image_name] = (likeCountMap[row.image_name] || 0) + 1;
+      }
+    }
+  }
+
+  // 현재 사용자의 좋아요 상태 (구글 로그인 사용자만)
+  let userLikeSet = new Set();
+  if (currentUser && !currentUser.is_anonymous && imageNames.length > 0) {
+    const { data: userLikes } = await supabase
+      .from("image_likes")
+      .select("image_name")
+      .in("image_name", imageNames)
+      .eq("user_id", currentUser.id);
+    if (userLikes) {
+      userLikeSet = new Set(userLikes.map((r) => r.image_name));
+    }
+  }
+
   const publicUrlMap = {};
   for (const name of imageNames) {
     // public URL을 즉시 생성하여 img/video 태그를 바로 포함
@@ -268,13 +322,9 @@ export const loadImages = async (htmlId, imageNames, metaMap = {}, append = fals
       data: { publicUrl },
     } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(name);
     publicUrlMap[name] = publicUrl;
-    const item = buildImageHtml(name, metaMap, uploaderMap, publicUrl);
+    const item = buildImageHtml(name, metaMap, uploaderMap, publicUrl, likeCountMap, userLikeSet);
     document.getElementById(htmlId).insertAdjacentHTML("beforeend", item);
   }
-  // 로그인 상태 확인 (admin 여부는 캐싱)
-  const {
-    data: { user: currentUser },
-  } = await supabase.auth.getUser();
   let isAdmin = false;
   if (currentUser) {
     if (cachedAdminStatus === null) {

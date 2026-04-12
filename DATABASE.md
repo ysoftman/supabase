@@ -110,6 +110,59 @@ CREATE POLICY "Allow read for authenticated" ON admins
 -- SELECT id, email FROM auth.users WHERE email = 'ysoftman@gmail.com';
 ```
 
+## image_likes 테이블
+
+```sql
+CREATE TABLE IF NOT EXISTS image_likes (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  image_name TEXT NOT NULL,
+  user_id UUID NOT NULL REFERENCES auth.users(id),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(image_name, user_id)
+);
+
+ALTER TABLE image_likes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow read" ON image_likes FOR SELECT USING (true);
+
+CREATE POLICY "Allow insert for authenticated" ON image_likes
+  FOR INSERT WITH CHECK (
+    auth.uid() IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM auth.users WHERE id = auth.uid() AND is_anonymous = true
+    )
+  );
+
+CREATE POLICY "Allow delete own likes" ON image_likes
+  FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_image_likes_image_name ON image_likes(image_name);
+CREATE INDEX idx_image_likes_user_id ON image_likes(user_id);
+
+-- 좋아요 토글 RPC (원자적 like/unlike + count 반환)
+CREATE OR REPLACE FUNCTION toggle_like(p_image_name TEXT)
+RETURNS JSON AS $$
+DECLARE
+  v_user_id UUID := auth.uid();
+  v_exists BOOLEAN;
+  v_count INTEGER;
+BEGIN
+  SELECT EXISTS(
+    SELECT 1 FROM image_likes WHERE image_name = p_image_name AND user_id = v_user_id
+  ) INTO v_exists;
+
+  IF v_exists THEN
+    DELETE FROM image_likes WHERE image_name = p_image_name AND user_id = v_user_id;
+  ELSE
+    INSERT INTO image_likes (image_name, user_id) VALUES (p_image_name, v_user_id);
+  END IF;
+
+  SELECT COUNT(*) INTO v_count FROM image_likes WHERE image_name = p_image_name;
+  RETURN json_build_object('liked', NOT v_exists, 'like_count', v_count);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
 ## 마이그레이션
 
 기존 테이블에 컬럼 추가 또는 정책 변경이 필요한 경우 실행한다.

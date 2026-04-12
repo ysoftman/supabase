@@ -218,9 +218,7 @@ img.thumbnail:hover {
 }
 
 .nes-btn.is-purple::after {
-  box-shadow:
-    inset -4px -4px var(--color-purple-active),
-    inset -4px -4px var(--color-purple-active);
+  box-shadow: inset -4px -4px var(--color-purple-active), inset -4px -4px var(--color-purple-active);
 }
 
 .nes-btn.is-purple:hover {
@@ -230,9 +228,7 @@ img.thumbnail:hover {
 }
 
 .nes-btn.is-purple:hover::after {
-  box-shadow:
-    inset -4px -4px var(--color-purple-shadow),
-    inset -4px -4px var(--color-purple-shadow);
+  box-shadow: inset -4px -4px var(--color-purple-shadow), inset -4px -4px var(--color-purple-shadow);
 }
 
 .nes-btn.is-purple:active,
@@ -516,6 +512,33 @@ video {
 
 .nes-container.with-title > .title span[id$="_img_size"] {
   color: var(--img-dimension-color) !important;
+}
+
+.img-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.like-heart {
+  cursor: default;
+  transition: transform 0.1s;
+}
+
+.like-heart.clickable {
+  cursor: pointer;
+}
+
+.like-heart.clickable:hover {
+  transform: scale(1.2);
+}
+
+.like-count {
+  font-size: 11px;
+  color: var(--color-red);
+  vertical-align: middle;
 }
 
 .img-file-move-btn,
