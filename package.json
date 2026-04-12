@@ -8,6 +8,7 @@
     "@dicebear/core": "^9.4.2",
     "@fontsource/press-start-2p": "^5.2.7",
     "@supabase/supabase-js": "^2.49.0",
+    "galmuri": "^2.40.3",
     "nes.css": "^2.3.0",
     "sass": "^1.97.2"
   },
